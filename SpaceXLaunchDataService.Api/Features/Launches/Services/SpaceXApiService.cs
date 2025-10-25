@@ -6,7 +6,7 @@ namespace SpaceXLaunches.Features.Launches.Services;
 public class SpaceXApiService : ISpaceXApiService
 {
     private readonly HttpClient _httpClient;
-    
+
     public SpaceXApiService(HttpClient httpClient)
     {
         _httpClient = httpClient;

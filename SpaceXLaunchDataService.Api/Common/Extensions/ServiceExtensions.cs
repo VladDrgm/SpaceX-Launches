@@ -11,10 +11,10 @@ namespace SpaceXLaunches.Extensions
             services.AddScoped<ILaunchRepository, LaunchRepository>();
             services.AddScoped<ISpaceXApiService, SpaceXApiService>();
             services.AddHostedService<SpaceXDataSyncService>();
-            
+
             // Add HttpClient for external API calls
             services.AddHttpClient<ISpaceXApiService, SpaceXApiService>();
-            
+
             return services;
         }
 
@@ -25,7 +25,7 @@ namespace SpaceXLaunches.Extensions
                 options.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
                 options.SerializerOptions.WriteIndented = true;
             });
-            
+
             return services;
         }
 
@@ -33,14 +33,14 @@ namespace SpaceXLaunches.Extensions
         {
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
-            
+
             return services;
         }
 
         public static IServiceCollection ConfigureHealthChecks(this IServiceCollection services)
         {
             services.AddHealthChecks();
-            
+
             return services;
         }
 
@@ -51,7 +51,7 @@ namespace SpaceXLaunches.Extensions
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-            
+
             return app;
         }
     }

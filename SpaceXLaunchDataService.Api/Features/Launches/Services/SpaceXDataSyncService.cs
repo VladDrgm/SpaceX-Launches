@@ -24,7 +24,7 @@ public class SpaceXDataSyncService : BackgroundService
                 var repository = scope.ServiceProvider.GetRequiredService<ILaunchRepository>();
 
                 _logger.LogInformation("Starting SpaceX data synchronization");
-                
+
                 // Stub implementation
                 await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
             }
