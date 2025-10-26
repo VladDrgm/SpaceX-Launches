@@ -1,12 +1,13 @@
 using OneOf;
-using SpaceXLaunches.Data.Types;
-using SpaceXLaunches.Data.Types.Requests;
+using SpaceXLaunchDataService.Data.Models;
+using SpaceXLaunchDataService.Features.Launches.Endpoints;
 
-namespace SpaceXLaunches.Data;
+namespace SpaceXLaunchDataService.Data;
 
 public interface ILaunchRepository
 {
-    Task<OneOf<PaginatedLaunchesDto, string>> GetLaunchesAsync(GetLaunchesRequest request);
-    Task<OneOf<LaunchDto, string>> GetLaunchByIdAsync(string id);
+    Task<OneOf<PaginatedLaunchesResponse, string>> GetLaunchesAsync(GetLaunchesRequest request);
+    Task<OneOf<List<LaunchResponse>, string>> GetLaunchesByDateAsync(DateTime date);
+    Task<OneOf<LaunchDetailsResponse, string>> GetLaunchByIdAsync(string id);
     Task<OneOf<int, string>> SaveLaunchesAsync(IEnumerable<Launch> launches);
 }

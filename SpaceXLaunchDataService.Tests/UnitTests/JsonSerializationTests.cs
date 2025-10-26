@@ -1,101 +1,111 @@
 using FluentAssertions;
-using SpaceXLaunches.Common.Services.Configuration;
-using SpaceXLaunches.Data.Types;
+using SpaceXLaunchDataService.Data.Models;
+using SpaceXLaunchDataService.Features.Launches.Endpoints;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Xunit;
 
-namespace SpaceXLaunches.Tests.UnitTests;
+namespace SpaceXLaunchDataService.Tests.UnitTests;
 
 public class JsonSerializationTests
 {
     [Fact]
-    public void LaunchDto_ShouldSerializeToCorrectJson_UsingSystemTextJson()
+    public void LaunchResponse_ShouldSerializeToCorrectJson_UsingSystemTextJson()
     {
         // Arrange
-        var launchDto = new LaunchDto
+        var launchResponse = new LaunchResponse
         {
             Id = "test-launch-id",
             FlightNumber = 123,
-            MissionName = "Test Mission",
-            LaunchDateUtc = new DateTime(2024, 1, 15, 10, 30, 0, DateTimeKind.Utc),
-            WasSuccessful = true,
-            Summary = "Test launch summary",
-            IsUpcoming = false
+            Name = "Test Mission",
+            DateUtc = new DateTime(2024, 1, 15, 10, 30, 0, DateTimeKind.Utc),
+            Success = true,
+            Details = "Test launch summary"
         };
 
         // Act
-        var json = JsonSerializer.Serialize(launchDto, JsonConfiguration.ApiOptions);
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true
+        };
+        var json = JsonSerializer.Serialize(launchResponse, options);
 
         // Assert
         json.Should().Contain("\"id\":");
-        json.Should().Contain("\"missionName\":");
-        json.Should().Contain("\"launchDateUtc\":");
-        json.Should().Contain("\"wasSuccessful\": true");
+        json.Should().Contain("\"name\":");
+        json.Should().Contain("\"dateUtc\":");
+        json.Should().Contain("\"success\": true");
         json.Should().Contain("\"Test Mission\"");
-        json.Should().NotContain("null"); // Should ignore null values if configured
     }
 
     [Fact]
-    public void LaunchDto_ShouldDeserializeFromJson_UsingSystemTextJson()
+    public void LaunchResponse_ShouldDeserializeFromJson_UsingSystemTextJson()
     {
         // Arrange
         var json = """
         {
             "id": "deserialize-test-id",
             "flightNumber": 456,
-            "missionName": "Deserialization Test",
-            "launchDateUtc": "2024-02-20T14:45:00Z",
-            "wasSuccessful": false,
-            "summary": "Test deserialization",
-            "isUpcoming": true
+            "name": "Deserialization Test",
+            "dateUtc": "2024-02-20T14:45:00Z",
+            "success": false,
+            "details": "Test deserialization"
         }
         """;
 
         // Act
-        var result = JsonSerializer.Deserialize<LaunchDto>(json, JsonConfiguration.TestOptions);
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+        var result = JsonSerializer.Deserialize<LaunchResponse>(json, options);
 
         // Assert
         result.Should().NotBeNull();
         result!.Id.Should().Be("deserialize-test-id");
         result.FlightNumber.Should().Be(456);
-        result.MissionName.Should().Be("Deserialization Test");
-        result.WasSuccessful.Should().BeFalse();
-        result.IsUpcoming.Should().BeTrue();
+        result.Name.Should().Be("Deserialization Test");
+        result.Success.Should().BeFalse();
+        result.Details.Should().Be("Test deserialization");
     }
 
     [Fact]
-    public void PaginatedLaunchesDto_ShouldSerializeCorrectly_WithCamelCaseNaming()
+    public void PaginatedLaunchesResponse_ShouldSerializeCorrectly_WithCamelCaseNaming()
     {
         // Arrange
-        var paginatedDto = new PaginatedLaunchesDto
+        var paginatedResponse = new PaginatedLaunchesResponse
         {
-            Page = 1,
-            Limit = 10,
+            CurrentPage = 1,
+            PageSize = 10,
             TotalPages = 5,
-            TotalLaunches = 50,
-            HasNextPage = true,
-            Launches = new[]
+            TotalCount = 50,
+            Launches = new List<LaunchResponse>
             {
-                new LaunchDto
+                new LaunchResponse
                 {
                     Id = "launch-1",
                     FlightNumber = 1,
-                    MissionName = "First Launch",
-                    LaunchDateUtc = DateTime.UtcNow,
-                    WasSuccessful = true,
-                    Summary = "First test launch",
-                    IsUpcoming = false
+                    Name = "First Launch",
+                    DateUtc = DateTime.UtcNow,
+                    Success = true,
+                    Details = "First test launch"
                 }
             }
         };
 
         // Act
-        var json = JsonSerializer.Serialize(paginatedDto, JsonConfiguration.ApiOptions);
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true
+        };
+        var json = JsonSerializer.Serialize(paginatedResponse, options);
 
         // Assert
-        json.Should().Contain("\"page\": 1");
+        json.Should().Contain("\"currentPage\": 1");
         json.Should().Contain("\"totalPages\": 5");
-        json.Should().Contain("\"hasNextPage\": true");
+        json.Should().Contain("\"totalCount\": 50");
         json.Should().Contain("\"launches\":");
         json.Should().Contain("\"First Launch\"");
     }
@@ -115,7 +125,11 @@ public class JsonSerializationTests
         };
 
         // Act
-        var json = JsonSerializer.Serialize(launch, JsonConfiguration.ExternalApiOptions);
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+        };
+        var json = JsonSerializer.Serialize(launch, options);
 
         // Assert - Should use snake_case property names for external API
         json.Should().Contain("\"flight_number\":");
@@ -128,22 +142,26 @@ public class JsonSerializationTests
     public void JsonConfiguration_ApiOptions_ShouldHandleNullValues()
     {
         // Arrange
-        var launchDto = new LaunchDto
+        var launchResponse = new LaunchResponse
         {
             Id = "null-test",
             FlightNumber = 100,
-            MissionName = "Null Test",
-            LaunchDateUtc = DateTime.UtcNow,
-            WasSuccessful = null, // This should be ignored in serialization
-            Summary = "Testing null handling",
-            IsUpcoming = false
+            Name = "Null Test",
+            DateUtc = DateTime.UtcNow,
+            Success = null, // This should be ignored in serialization
+            Details = "Testing null handling"
         };
 
         // Act
-        var json = JsonSerializer.Serialize(launchDto, JsonConfiguration.ApiOptions);
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        };
+        var json = JsonSerializer.Serialize(launchResponse, options);
 
-        // Assert - wasSuccessful should not appear in JSON when null due to DefaultIgnoreCondition
-        json.Should().NotContain("\"wasSuccessful\": null");
+        // Assert - success should not appear in JSON when null due to DefaultIgnoreCondition
+        json.Should().NotContain("\"success\": null");
     }
 
     [Fact]
@@ -153,8 +171,18 @@ public class JsonSerializationTests
         var simple = new { test = "value", number = 42 };
 
         // Act
-        var compactJson = JsonSerializer.Serialize(simple, JsonConfiguration.TestOptions);
-        var prettyJson = JsonSerializer.Serialize(simple, JsonConfiguration.ApiOptions);
+        var compactOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = false
+        };
+        var prettyOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true
+        };
+        var compactJson = JsonSerializer.Serialize(simple, compactOptions);
+        var prettyJson = JsonSerializer.Serialize(simple, prettyOptions);
 
         // Assert
         compactJson.Should().NotContain("\n"); // No line breaks

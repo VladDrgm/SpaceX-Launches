@@ -1,6 +1,8 @@
-using SpaceXLaunches.Features.Launches.Endpoints;
+using Microsoft.AspNetCore.Builder;
+using SpaceXLaunchDataService.Features.Launches.Endpoints;
+using SpaceXLaunchDataService.Common.Services.Infrastructure.Swagger;
 
-namespace SpaceXLaunches;
+namespace SpaceXLaunchDataService;
 
 public static class Endpoints
 {
@@ -17,10 +19,17 @@ public static class Endpoints
 
     private static void MapLaunchEndpoints(WebApplication app)
     {
-        var launches = app.MapGroup("/api/v1/launches").WithTags("Launches");
+        var launches = app.MapGroup("/api/v1/launches")
+            .WithTags("Launches")
+            .WithDescription("SpaceX launch data endpoints with filtering, sorting, and pagination");
 
-        launches.MapGet("", GetLaunches.HandleAsync);
-        launches.MapGet("{id}", GetLaunchById.HandleAsync);
-        launches.MapPost("sync", SyncLaunches.HandleAsync);
+        launches.MapGet("", GetLaunches.HandleAsync)
+            .ConfigureGetLaunchesSwagger();
+
+        launches.MapGet("{id}", GetLaunchDetails.HandleAsync)
+            .ConfigureGetLaunchDetailsSwagger();
+
+        launches.MapPost("sync", SyncLaunches.HandleAsync)
+            .ConfigureSyncLaunchesSwagger();
     }
 }

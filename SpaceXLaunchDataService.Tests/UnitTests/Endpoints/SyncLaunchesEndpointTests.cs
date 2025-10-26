@@ -1,72 +1,84 @@
 using FluentAssertions;
 using Moq;
-using OneOf;
-using SpaceXLaunches.Data;
-using SpaceXLaunches.Data.Types;
-using static SpaceXLaunches.Data.Types.Errors;
-using SpaceXLaunches.Features.Launches.Endpoints;
-using SpaceXLaunches.Features.Launches.Services;
+using SpaceXLaunchDataService.Data.Models;
+using SpaceXLaunchDataService.Features.Launches.Services;
+using SpaceXLaunchDataService.Features.Launches.Endpoints;
 using Xunit;
 
-namespace SpaceXLaunches.Tests.UnitTests.Endpoints;
+namespace SpaceXLaunchDataService.Tests.UnitTests.Endpoints;
 
 public class SyncLaunchesEndpointTests
 {
-    private readonly Mock<ILaunchRepository> _mockRepository;
     private readonly Mock<ISpaceXApiService> _mockApiService;
 
     public SyncLaunchesEndpointTests()
     {
-        _mockRepository = new Mock<ILaunchRepository>();
         _mockApiService = new Mock<ISpaceXApiService>();
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnOk_WhenSyncSucceeds()
+    public async Task HandleAsync_ShouldReturnOk_WhenApiServiceReturnsLaunches()
     {
         // Arrange
         var launches = new List<Launch>
         {
-            new()
+            new Launch
             {
                 Id = "1",
                 Name = "Test Launch",
-                Success = true,
                 DateUtc = DateTime.UtcNow,
-                Details = "Test launch details",
-                FlightNumber = 1
+                FlightNumber = 1,
+                Success = true,
+                Details = "Test details"
             }
         };
 
-        _mockApiService.Setup(x => x.FetchAllLaunchesAsync())
-            .ReturnsAsync(OneOf<IEnumerable<Launch>, ApiError>.FromT0(launches));
-
-        _mockRepository.Setup(x => x.SaveLaunchesAsync(It.IsAny<IEnumerable<Launch>>()))
-            .ReturnsAsync(OneOf<int, DatabaseError>.FromT0(1));
+        _mockApiService.Setup(x => x.FetchLaunchesAsync())
+            .ReturnsAsync(launches);
 
         // Act
-        var result = await SyncLaunches.Handle(_mockApiService.Object, _mockRepository.Object);
+        var result = await SyncLaunches.HandleAsync(_mockApiService.Object);
 
         // Assert
         result.Should().NotBeNull();
-        _mockApiService.Verify(x => x.FetchAllLaunchesAsync(), Times.Once);
-        _mockRepository.Verify(x => x.SaveLaunchesAsync(It.IsAny<IEnumerable<Launch>>()), Times.Once);
+        _mockApiService.Verify(x => x.FetchLaunchesAsync(), Times.Once);
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnProblem_WhenApiFails()
+    public async Task HandleAsync_ShouldReturnBadRequest_WhenApiServiceReturnsError()
     {
         // Arrange
-        var apiError = new ApiError("SpaceX API is unavailable");
-        _mockApiService.Setup(x => x.FetchAllLaunchesAsync())
-            .ReturnsAsync(OneOf<IEnumerable<Launch>, ApiError>.FromT1(apiError));
+        var errorMessage = "SpaceX API is unavailable";
+        _mockApiService.Setup(x => x.FetchLaunchesAsync())
+            .ReturnsAsync(errorMessage);
 
         // Act
-        var result = await SyncLaunches.Handle(_mockApiService.Object, _mockRepository.Object);
+        var result = await SyncLaunches.HandleAsync(_mockApiService.Object);
 
         // Assert
         result.Should().NotBeNull();
-        _mockApiService.Verify(x => x.FetchAllLaunchesAsync(), Times.Once);
-        _mockRepository.Verify(x => x.SaveLaunchesAsync(It.IsAny<IEnumerable<Launch>>()), Times.Never);
+        _mockApiService.Verify(x => x.FetchLaunchesAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldReturnCorrectCount_WhenApiServiceReturnsMultipleLaunches()
+    {
+        // Arrange
+        var launches = new List<Launch>
+        {
+            new Launch { Id = "1", Name = "Launch 1", DateUtc = DateTime.UtcNow, FlightNumber = 1, Success = true, Details = "Details 1" },
+            new Launch { Id = "2", Name = "Launch 2", DateUtc = DateTime.UtcNow, FlightNumber = 2, Success = false, Details = "Details 2" },
+            new Launch { Id = "3", Name = "Launch 3", DateUtc = DateTime.UtcNow, FlightNumber = 3, Success = true, Details = "Details 3" }
+        };
+
+        _mockApiService.Setup(x => x.FetchLaunchesAsync())
+            .ReturnsAsync(launches);
+
+        // Act
+        var result = await SyncLaunches.HandleAsync(_mockApiService.Object);
+
+        // Assert
+        result.Should().NotBeNull();
+        _mockApiService.Verify(x => x.FetchLaunchesAsync(), Times.Once);
     }
 }

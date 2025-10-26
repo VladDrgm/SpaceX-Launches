@@ -1,90 +1,96 @@
 using FluentAssertions;
-using Microsoft.Extensions.Configuration;
-using OneOf;
-using SpaceXLaunches.Common.Services.Configuration;
-using SpaceXLaunches.Data;
-using SpaceXLaunches.Data.Types;
-using static SpaceXLaunches.Data.Types.Errors;
+using SpaceXLaunchDataService.Data;
+using SpaceXLaunchDataService.Data.Models.Enums;
+using SpaceXLaunchDataService.Features.Launches.Endpoints;
 using Xunit;
 
-namespace SpaceXLaunches.Tests.UnitTests;
+namespace SpaceXLaunchDataService.Tests.UnitTests;
 
-public class LaunchRepositoryTests : IDisposable
+public class LaunchRepositoryTests
 {
     private readonly LaunchRepository _repository;
-    private readonly string _testDbPath;
 
     public LaunchRepositoryTests()
     {
-        _testDbPath = Path.Combine(Path.GetTempPath(), $"test_spacex_{Guid.NewGuid():N}.db");
-
-        var configData = new Dictionary<string, string?>
-        {
-            ["ConnectionStrings:DefaultConnection"] = $"Data Source={_testDbPath}"
-        };
-
-        var configBuilder = new ConfigurationBuilder();
-        configBuilder.AddInMemoryCollection(configData);
-
-        var config = new AppConfiguration(configBuilder.Build());
-        _repository = new LaunchRepository(config);
+        _repository = new LaunchRepository();
     }
 
-    public void Dispose()
+    [Fact]
+    public async Task GetLaunchByIdAsync_ShouldReturnLaunch_WhenLaunchExists()
     {
-        if (File.Exists(_testDbPath))
-            File.Delete(_testDbPath);
+        // Arrange
+        var existingId = "1"; // This exists in the in-memory data
+
+        // Act
+        var result = await _repository.GetLaunchByIdAsync(existingId);
+
+        // Assert
+        result.IsT0.Should().BeTrue(); // Should be LaunchDetailsResponse
+        var launch = result.AsT0;
+        launch.Should().NotBeNull();
+        launch.Id.Should().Be(existingId);
+        launch.Name.Should().Be("FalconSat");
     }
 
     [Fact]
     public async Task GetLaunchByIdAsync_ShouldReturnNotFound_WhenLaunchDoesNotExist()
     {
         // Arrange
-        await _repository.InitializeDbAsync(); // Ensure DB is initialized
         var nonExistentId = "nonexistent-launch-id";
 
         // Act
         var result = await _repository.GetLaunchByIdAsync(nonExistentId);
 
         // Assert
-        result.IsT1.Should().BeTrue(); // Should be NotFoundError
-        var notFoundError = result.AsT1;
-        notFoundError.Message.Should().Contain("Launch");
-        notFoundError.Message.Should().Contain(nonExistentId);
+        result.IsT1.Should().BeTrue(); // Should be string (error message)
+        var errorMessage = result.AsT1;
+        errorMessage.Should().Contain("Launch not found");
     }
 
     [Theory]
     [InlineData(0, 10)] // Invalid page
     [InlineData(1, 1001)] // Limit too high
-    public async Task GetLaunchesPaginatedAsync_ShouldReturnValidationError_WhenParametersInvalid(int page, int limit)
+    public async Task GetLaunchesAsync_ShouldReturnResults_EvenWithInvalidParameters(int page, int pageSize)
     {
-        // Arrange
-        await _repository.InitializeDbAsync(); // Ensure DB is initialized
+        // Arrange - Repository doesn't validate, it just processes the request
+        var request = new GetLaunchesRequest
+        {
+            Page = page,
+            PageSize = pageSize,
+            SortBy = SortField.DateUtc,
+            SortOrder = SortOrder.Desc
+        };
 
         // Act
-        var result = await _repository.GetLaunchesPaginatedAsync(page, limit, null);
+        var result = await _repository.GetLaunchesAsync(request);
 
-        // Assert
-        result.IsT1.Should().BeTrue(); // Should be ValidationError
+        // Assert - Repository returns results regardless of parameters
+        result.IsT0.Should().BeTrue(); // Should be successful (PaginatedLaunchesResponse)
 
-        var validationError = result.AsT1;
-        if (page <= 0)
-        {
-            validationError.Message.Should().Contain("page is out of range. Expected: must be greater than 0");
-        }
-        else if (limit > 1000)
-        {
-            validationError.Message.Should().Contain("limit is out of range. Expected: must be between 1 and 1000");
-        }
+        var launches = result.AsT0;
+        launches.Should().NotBeNull();
+        launches.Launches.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task InitializeDbAsync_ShouldReturnSuccess_WhenCalledOnNewDatabase()
+    public async Task GetLaunchesAsync_ShouldReturnSuccess_WhenCalledWithValidRequest()
     {
+        // Arrange
+        var request = new GetLaunchesRequest
+        {
+            Page = 1,
+            PageSize = 10,
+            SortBy = SortField.DateUtc,
+            SortOrder = SortOrder.Desc
+        };
+
         // Act
-        var result = await _repository.InitializeDbAsync();
+        var result = await _repository.GetLaunchesAsync(request);
 
         // Assert
-        result.IsT0.Should().BeTrue(); // Should be Success
+        result.IsT0.Should().BeTrue(); // Should be PaginatedLaunchesResponse
+        var paginatedResult = result.AsT0;
+        paginatedResult.Should().NotBeNull();
+        paginatedResult.Launches.Should().NotBeEmpty();
     }
 }

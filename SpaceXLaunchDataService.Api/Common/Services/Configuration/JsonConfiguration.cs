@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace SpaceXLaunches.Common.Services.Configuration;
+namespace SpaceXLaunchDataService.Common.Services.Configuration;
 
 public static class JsonConfiguration
 {

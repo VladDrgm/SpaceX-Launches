@@ -1,4 +1,4 @@
-namespace SpaceXLaunches.Features.Launches.Endpoints;
+namespace SpaceXLaunchDataService.Features.Launches.Endpoints;
 
 public interface IEndpoint
 {
