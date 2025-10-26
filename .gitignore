@@ -51,8 +51,8 @@ artifacts/
 *.nuget.props
 *.nuget.targets
 
-# Database folder (created at runtime)
-database/
+# SQLite database folder (created at runtime) - only at root level
+/database/
 
 # SQLite database files
 *.db
