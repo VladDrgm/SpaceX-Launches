@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using SpaceXLaunchDataService.Data;
+using SpaceXLaunchDataService.Api.Data;
 using SpaceXLaunchDataService.Tests.TestData;
 
 namespace SpaceXLaunchDataService.Tests.Infrastructure;

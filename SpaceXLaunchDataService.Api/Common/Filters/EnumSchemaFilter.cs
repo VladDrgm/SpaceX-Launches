@@ -1,8 +1,8 @@
+using System.ComponentModel;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using System.ComponentModel;
 
-namespace SpaceXLaunchDataService.Common.Filters;
+namespace SpaceXLaunchDataService.Api.Common.Filters;
 
 /// <summary>
 /// Swagger schema filter to add enum descriptions and examples

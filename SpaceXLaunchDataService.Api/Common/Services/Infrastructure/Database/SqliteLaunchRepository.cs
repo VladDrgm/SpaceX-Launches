@@ -1,12 +1,11 @@
-using OneOf;
-using SpaceXLaunchDataService.Data.Models;
-using SpaceXLaunchDataService.Data.Models.Enums;
-using SpaceXLaunchDataService.Features.Launches.Endpoints;
-using SpaceXLaunchDataService.Data;
 using Dapper;
-using System.Text;
+using OneOf;
+using SpaceXLaunchDataService.Api.Data;
+using SpaceXLaunchDataService.Api.Data.Models;
+using SpaceXLaunchDataService.Api.Data.Models.Enums;
+using SpaceXLaunchDataService.Api.Features.Launches.Endpoints;
 
-namespace SpaceXLaunchDataService.Common.Services.Infrastructure.Database;
+namespace SpaceXLaunchDataService.Api.Common.Services.Infrastructure.Database;
 
 public class SqliteLaunchRepository : ILaunchRepository
 {

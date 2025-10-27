@@ -1,4 +1,4 @@
-namespace SpaceXLaunchDataService.Common.Services.Configuration;
+namespace SpaceXLaunchDataService.Api.Common.Services.Configuration;
 
 public class AppConfiguration
 {

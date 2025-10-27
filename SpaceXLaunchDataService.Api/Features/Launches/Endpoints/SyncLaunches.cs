@@ -1,6 +1,6 @@
-using SpaceXLaunchDataService.Features.Launches.Services;
+using SpaceXLaunchDataService.Api.Features.Launches.Services;
 
-namespace SpaceXLaunchDataService.Features.Launches.Endpoints;
+namespace SpaceXLaunchDataService.Api.Features.Launches.Endpoints;
 
 public static class SyncLaunches
 {

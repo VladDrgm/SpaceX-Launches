@@ -1,13 +1,9 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using SpaceXLaunchDataService.Data;
-using SpaceXLaunchDataService.Features.Launches.Services;
-using SpaceXLaunchDataService.Common.Filters;
-using SpaceXLaunchDataService.Common.Services.Infrastructure.Database;
+using SpaceXLaunchDataService.Api.Common.Filters;
+using SpaceXLaunchDataService.Api.Common.Services.Infrastructure.Database;
+using SpaceXLaunchDataService.Api.Data;
+using SpaceXLaunchDataService.Api.Features.Launches.Services;
 
-namespace SpaceXLaunchDataService.Extensions
+namespace SpaceXLaunchDataService.Api.Common.Extensions
 {
     public static class ServiceExtensions
     {
@@ -99,6 +95,35 @@ All date parameters use the **yyyy-MM-dd** format:
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
+            return app;
+        }
+
+        public static WebApplication ConfigureApplicationStartupLogging(this WebApplication app)
+        {
+            var logger = app.Services.GetRequiredService<ILogger<Program>>();
+
+            app.Lifetime.ApplicationStarted.Register(() =>
+            {
+                var baseUrl = "http://localhost:5000";
+                if (app.Urls.Any())
+                {
+                    baseUrl = app.Urls.First();
+                }
+
+                logger.LogInformation("🚀 SpaceX Launch Data Service API is running!");
+                logger.LogInformation("🏥 Health Check: {BaseUrl}/health", baseUrl);
+
+                if (app.Environment.IsDevelopment())
+                {
+                    logger.LogInformation("Swagger UI: {BaseUrl}/swagger", baseUrl);
+                    logger.LogInformation("Swagger JSON: {BaseUrl}/swagger/v1/swagger.json", baseUrl);
+                }
+                else
+                {
+                    logger.LogInformation("Running in {Environment} mode - Swagger UI is disabled", app.Environment.EnvironmentName);
+                }
+            });
 
             return app;
         }

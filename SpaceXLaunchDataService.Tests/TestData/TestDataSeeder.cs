@@ -1,5 +1,5 @@
-using SpaceXLaunchDataService.Data.Models;
-using SpaceXLaunchDataService.Data;
+using SpaceXLaunchDataService.Api.Data;
+using SpaceXLaunchDataService.Api.Data.Models;
 
 namespace SpaceXLaunchDataService.Tests.TestData;
 

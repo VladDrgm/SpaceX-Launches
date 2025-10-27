@@ -1,10 +1,6 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using SpaceXLaunchDataService;
-using SpaceXLaunchDataService.Extensions;
-using SpaceXLaunchDataService.Common.Services.Infrastructure.Database;
+using SpaceXLaunchDataService.Api;
+using SpaceXLaunchDataService.Api.Common.Extensions;
+using SpaceXLaunchDataService.Api.Common.Services.Infrastructure.Database;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,31 +21,8 @@ app.ConfigurePipeline();
 // Map endpoints
 app.MapEndpoints();
 
-// Log application URLs and important endpoints
-var logger = app.Services.GetRequiredService<ILogger<Program>>();
-
-// Use a lifecycle event to log after the server starts
-app.Lifetime.ApplicationStarted.Register(() =>
-{
-    var baseUrl = "http://localhost:5000";
-    if (app.Urls.Any())
-    {
-        baseUrl = app.Urls.First();
-    }
-
-    logger.LogInformation("🚀 SpaceX Launch Data Service API is running!");
-    logger.LogInformation("🏥 Health Check: {BaseUrl}/health", baseUrl);
-
-    if (app.Environment.IsDevelopment())
-    {
-        logger.LogInformation("Swagger UI: {BaseUrl}/swagger", baseUrl);
-        logger.LogInformation("Swagger JSON: {BaseUrl}/swagger/v1/swagger.json", baseUrl);
-    }
-    else
-    {
-        logger.LogInformation("Running in {Environment} mode - Swagger UI is disabled", app.Environment.EnvironmentName);
-    }
-});
+// Configure application startup logging
+app.ConfigureApplicationStartupLogging();
 
 app.Run();
 

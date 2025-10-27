@@ -1,8 +1,7 @@
-using Microsoft.AspNetCore.Builder;
-using SpaceXLaunchDataService.Features.Launches.Endpoints;
-using SpaceXLaunchDataService.Common.Services.Infrastructure.Swagger;
+using SpaceXLaunchDataService.Api.Common.Services.Infrastructure.Swagger;
+using SpaceXLaunchDataService.Api.Features.Launches.Endpoints;
 
-namespace SpaceXLaunchDataService;
+namespace SpaceXLaunchDataService.Api;
 
 public static class Endpoints
 {

@@ -1,4 +1,4 @@
-namespace SpaceXLaunchDataService.Common.Services.Infrastructure.Database;
+namespace SpaceXLaunchDataService.Api.Common.Services.Infrastructure.Database;
 
 /// <summary>
 /// Database entity for Launch data

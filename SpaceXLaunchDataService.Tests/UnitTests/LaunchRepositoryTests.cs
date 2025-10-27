@@ -1,7 +1,7 @@
 using FluentAssertions;
-using SpaceXLaunchDataService.Data;
-using SpaceXLaunchDataService.Data.Models.Enums;
-using SpaceXLaunchDataService.Features.Launches.Endpoints;
+using SpaceXLaunchDataService.Api.Data;
+using SpaceXLaunchDataService.Api.Data.Models.Enums;
+using SpaceXLaunchDataService.Api.Features.Launches.Endpoints;
 using Xunit;
 
 namespace SpaceXLaunchDataService.Tests.UnitTests;

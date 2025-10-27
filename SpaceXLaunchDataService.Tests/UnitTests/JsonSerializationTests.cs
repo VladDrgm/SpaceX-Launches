@@ -1,8 +1,8 @@
 using FluentAssertions;
-using SpaceXLaunchDataService.Data.Models;
-using SpaceXLaunchDataService.Features.Launches.Endpoints;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using SpaceXLaunchDataService.Api.Data.Models;
+using SpaceXLaunchDataService.Api.Features.Launches.Endpoints;
 using Xunit;
 
 namespace SpaceXLaunchDataService.Tests.UnitTests;

@@ -1,8 +1,8 @@
 using FluentAssertions;
 using Moq;
-using SpaceXLaunchDataService.Data.Models;
-using SpaceXLaunchDataService.Features.Launches.Services;
-using SpaceXLaunchDataService.Features.Launches.Endpoints;
+using SpaceXLaunchDataService.Api.Data.Models;
+using SpaceXLaunchDataService.Api.Features.Launches.Endpoints;
+using SpaceXLaunchDataService.Api.Features.Launches.Services;
 using Xunit;
 
 namespace SpaceXLaunchDataService.Tests.UnitTests.Endpoints;

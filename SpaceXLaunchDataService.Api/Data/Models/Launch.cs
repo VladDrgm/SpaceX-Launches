@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace SpaceXLaunchDataService.Data.Models;
+namespace SpaceXLaunchDataService.Api.Data.Models;
 
 public class Launch
 {

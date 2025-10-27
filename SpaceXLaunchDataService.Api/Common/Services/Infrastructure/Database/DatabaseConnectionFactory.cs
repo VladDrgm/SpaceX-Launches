@@ -1,8 +1,8 @@
-using Microsoft.Data.Sqlite;
 using System.Data;
 using Dapper;
+using Microsoft.Data.Sqlite;
 
-namespace SpaceXLaunchDataService.Common.Services.Infrastructure.Database;
+namespace SpaceXLaunchDataService.Api.Common.Services.Infrastructure.Database;
 
 public interface IDatabaseConnectionFactory
 {

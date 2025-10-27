@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace SpaceXLaunchDataService.Data.Models.Enums;
+namespace SpaceXLaunchDataService.Api.Data.Models.Enums;
 
 /// <summary>
 /// Available fields for sorting launch results

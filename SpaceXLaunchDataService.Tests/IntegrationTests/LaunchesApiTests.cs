@@ -1,9 +1,8 @@
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
-using SpaceXLaunchDataService.Features.Launches.Endpoints;
 using SpaceXLaunchDataService.Tests.Infrastructure;
 using System.Net;
 using System.Text.Json;
+using SpaceXLaunchDataService.Api.Features.Launches.Endpoints;
 using Xunit;
 
 namespace SpaceXLaunchDataService.Tests.IntegrationTests;

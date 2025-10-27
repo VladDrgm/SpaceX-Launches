@@ -1,7 +1,7 @@
 using OneOf;
-using SpaceXLaunchDataService.Data.Models;
+using SpaceXLaunchDataService.Api.Data.Models;
 
-namespace SpaceXLaunchDataService.Features.Launches.Services;
+namespace SpaceXLaunchDataService.Api.Features.Launches.Services;
 
 public class SpaceXApiService : ISpaceXApiService
 {

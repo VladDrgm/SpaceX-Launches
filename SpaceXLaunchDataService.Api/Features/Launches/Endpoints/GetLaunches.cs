@@ -1,11 +1,11 @@
-using SpaceXLaunchDataService.Data;
-using SpaceXLaunchDataService.Data.Models.Enums;
-using Microsoft.AspNetCore.Mvc;
-using System.Globalization;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
+using SpaceXLaunchDataService.Api.Data;
+using SpaceXLaunchDataService.Api.Data.Models.Enums;
 
-namespace SpaceXLaunchDataService.Features.Launches.Endpoints;
+namespace SpaceXLaunchDataService.Api.Features.Launches.Endpoints;
 
 /// <summary>
 /// Request parameters for retrieving launches with filtering, sorting, and pagination
@@ -123,8 +123,8 @@ public static class GetLaunches
     /// </summary>
     /// <param name="page">Page number (starts from 1)</param>
     /// <param name="pageSize">Number of items per page (1-100)</param>
-    /// <param name="sortBy">Field to sort by as string (DateUtc, Name, FlightNumber, Success)</param>
-    /// <param name="sortOrder">Sort direction as string (Asc for ascending, Desc for descending)</param>
+    /// <param name="sortBy">Sort field: "DateUtc" (launch date), "Name" (mission name), "FlightNumber" (flight sequence), "Success" (launch outcome)</param>
+    /// <param name="sortOrder">Sort direction: "Asc" (ascending/oldest first), "Desc" (descending/newest first)</param>
     /// <param name="success">Filter by success status: true=successful, false=failed, null=all</param>
     /// <param name="fromDate">Start date filter in yyyy-MM-dd format (e.g., 2006-03-24)</param>
     /// <param name="toDate">End date filter in yyyy-MM-dd format (e.g., 2024-12-31)</param>

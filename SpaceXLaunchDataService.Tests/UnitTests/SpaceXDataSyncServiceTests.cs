@@ -2,7 +2,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
-using SpaceXLaunchDataService.Features.Launches.Services;
+using SpaceXLaunchDataService.Api.Features.Launches.Services;
 using Xunit;
 
 namespace SpaceXLaunchDataService.Tests.UnitTests;

@@ -1,6 +1,6 @@
-using SpaceXLaunchDataService.Data;
+using SpaceXLaunchDataService.Api.Data;
 
-namespace SpaceXLaunchDataService.Features.Launches.Services;
+namespace SpaceXLaunchDataService.Api.Features.Launches.Services;
 
 public class SpaceXDataSyncService : BackgroundService
 {

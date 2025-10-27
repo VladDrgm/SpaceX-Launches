@@ -1,8 +1,8 @@
-using SpaceXLaunchDataService.Data;
-using Microsoft.AspNetCore.Mvc;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
+using SpaceXLaunchDataService.Api.Data;
 
-namespace SpaceXLaunchDataService.Features.Launches.Endpoints;
+namespace SpaceXLaunchDataService.Api.Features.Launches.Endpoints;
 
 // Response model for launch details
 public class LaunchDetailsResponse

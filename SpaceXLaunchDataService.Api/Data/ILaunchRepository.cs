@@ -1,8 +1,8 @@
 using OneOf;
-using SpaceXLaunchDataService.Data.Models;
-using SpaceXLaunchDataService.Features.Launches.Endpoints;
+using SpaceXLaunchDataService.Api.Data.Models;
+using SpaceXLaunchDataService.Api.Features.Launches.Endpoints;
 
-namespace SpaceXLaunchDataService.Data;
+namespace SpaceXLaunchDataService.Api.Data;
 
 public interface ILaunchRepository
 {
