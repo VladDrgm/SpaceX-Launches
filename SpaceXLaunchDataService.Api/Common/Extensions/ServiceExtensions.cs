@@ -52,12 +52,8 @@ All date parameters use the **yyyy-MM-dd** format:
 - ❌ Incorrect: `24-03-2006`, `2006/03/24`, `March 24, 2006`
 
 ## Common Date Examples
-- **2006-03-24** - First Falcon 1 launch (FalconSat)
-- **2008-09-28** - First successful Falcon 1 launch  
-- **2010-06-04** - First Dragon capsule launch
-- **2018-02-06** - Falcon Heavy maiden flight
-- **2020-05-30** - First crewed Dragon launch (Demo-2)
-- **2024-01-15** - Recent launches (use current dates)",
+- **2006-03-24** - FalconSat (first Falcon 1 launch, failed)
+- **2008-09-28** - RatSat (first successful Falcon 1 launch)",
                     Contact = new Microsoft.OpenApi.Models.OpenApiContact
                     {
                         Name = "SpaceX Launch Data API",

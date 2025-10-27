@@ -77,15 +77,15 @@ public static class SwaggerEndpointConfigurationService
                 var fromDateParam = operation.Parameters.FirstOrDefault(p => p.Name == "fromDate");
                 if (fromDateParam != null)
                 {
-                    fromDateParam.Description = "Filter from date (yyyy-MM-dd format). Example: 2006-03-24 for first Falcon 1 launch";
+                    fromDateParam.Description = "Filter from date (yyyy-MM-dd format). Example: 2006-03-24 for FalconSat launch";
                     fromDateParam.Example = new OpenApiString("2006-03-24");
                 }
 
                 var toDateParam = operation.Parameters.FirstOrDefault(p => p.Name == "toDate");
                 if (toDateParam != null)
                 {
-                    toDateParam.Description = "Filter to date (yyyy-MM-dd format). Example: 2024-12-31";
-                    toDateParam.Example = new OpenApiString("2024-12-31");
+                    toDateParam.Description = "Filter to date (yyyy-MM-dd format). Example: 2008-09-28 for RatSat launch";
+                    toDateParam.Example = new OpenApiString("2008-09-28");
                 }
 
                 var searchTermParam = operation.Parameters.FirstOrDefault(p => p.Name == "searchTerm");
@@ -109,8 +109,8 @@ public static class SwaggerEndpointConfigurationService
             .ProducesProblem(404)
             .WithOpenApi(operation =>
             {
-                operation.Parameters.First(p => p.Name == "id").Example = new OpenApiString("1");
-                operation.Parameters.First(p => p.Name == "id").Description = "Launch ID. Examples: '1' (FalconSat - first Falcon 1), '2' (DemoSat), '3' (Trailblazer)";
+                operation.Parameters.First(p => p.Name == "id").Example = new OpenApiString("5eb87cd9ffd86e000604b32a");
+                operation.Parameters.First(p => p.Name == "id").Description = "Launch ID. Examples: '5eb87cd9ffd86e000604b32a' (FalconSat - first Falcon 1), '5eb87cdbffd86e000604b32d' (RatSat - first successful)";
                 return operation;
             });
     }
