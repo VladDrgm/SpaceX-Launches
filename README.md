@@ -40,7 +40,6 @@ A .NET 9 minimal API service for accessing SpaceX launch data with filtering, pa
 - **Pagination Improvements**: Cursor-based pagination for better performance
 
 ### Features
-- **Real-time Updates**: SignalR for live launch status updates
 - **Data Enrichment**: Integrate additional SpaceX endpoints (rockets, payloads, crew)
 - **Search Enhancement**: Full-text search with Elasticsearch
 - **Historical Analytics**: Launch success trends and statistics

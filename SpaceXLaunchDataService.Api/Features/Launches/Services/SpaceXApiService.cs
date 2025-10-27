@@ -15,15 +15,8 @@ public class SpaceXApiService : ISpaceXApiService
 
     public async Task<OneOf<List<Launch>, string>> FetchLaunchesAsync()
     {
-        try
-        {
-            // Stub implementation
-            await Task.CompletedTask;
-            return new List<Launch>();
-        }
-        catch (Exception ex)
-        {
-            return $"Error fetching launches: {ex.Message}";
-        }
+        // Stub implementation - in production this would fetch from SpaceX API
+        await Task.CompletedTask;
+        return new List<Launch>();
     }
 }

@@ -43,160 +43,132 @@ public class LaunchRepository : ILaunchRepository
     {
         await Task.CompletedTask;
 
-        try
+        IEnumerable<LaunchResponse> query = _launches;
+
+        // Apply filters
+        if (request.Success.HasValue)
         {
-            IEnumerable<LaunchResponse> query = _launches;
-
-            // Apply filters
-            if (request.Success.HasValue)
-            {
-                query = query.Where(l => l.Success == request.Success.Value);
-            }
-
-            if (request.FromDate.HasValue)
-            {
-                query = query.Where(l => l.DateUtc >= request.FromDate.Value);
-            }
-
-            if (request.ToDate.HasValue)
-            {
-                query = query.Where(l => l.DateUtc <= request.ToDate.Value);
-            }
-
-            if (!string.IsNullOrWhiteSpace(request.SearchTerm))
-            {
-                var searchTerm = request.SearchTerm.ToLowerInvariant();
-                query = query.Where(l =>
-                    l.Name.ToLowerInvariant().Contains(searchTerm) ||
-                    (!string.IsNullOrEmpty(l.Details) && l.Details.ToLowerInvariant().Contains(searchTerm)));
-            }
-
-            // Apply sorting using enum values
-            var isDescending = request.SortOrder == SortOrder.Desc;
-
-            query = request.SortBy switch
-            {
-                SortField.DateUtc => isDescending
-                    ? query.OrderByDescending(l => l.DateUtc)
-                    : query.OrderBy(l => l.DateUtc),
-                SortField.Name => isDescending
-                    ? query.OrderByDescending(l => l.Name)
-                    : query.OrderBy(l => l.Name),
-                SortField.FlightNumber => isDescending
-                    ? query.OrderByDescending(l => l.FlightNumber)
-                    : query.OrderBy(l => l.FlightNumber),
-                SortField.Success => isDescending
-                    ? query.OrderByDescending(l => l.Success)
-                    : query.OrderBy(l => l.Success),
-                _ => query.OrderBy(l => l.DateUtc) // default sort
-            };
-
-            var totalCount = query.Count();
-            var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
-
-            // Apply pagination
-            var launches = query
-                .Skip((request.Page - 1) * request.PageSize)
-                .Take(request.PageSize)
-                .ToList();
-
-            return new PaginatedLaunchesResponse
-            {
-                Launches = launches,
-                TotalCount = totalCount,
-                PageSize = request.PageSize,
-                CurrentPage = request.Page,
-                TotalPages = totalPages
-            };
+            query = query.Where(l => l.Success == request.Success.Value);
         }
-        catch (Exception ex)
+
+        if (request.FromDate.HasValue)
         {
-            return $"Error retrieving launches: {ex.Message}";
+            query = query.Where(l => l.DateUtc >= request.FromDate.Value);
         }
+
+        if (request.ToDate.HasValue)
+        {
+            query = query.Where(l => l.DateUtc <= request.ToDate.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            var searchTerm = request.SearchTerm.ToLowerInvariant();
+            query = query.Where(l =>
+                l.Name.ToLowerInvariant().Contains(searchTerm) ||
+                (!string.IsNullOrEmpty(l.Details) && l.Details.ToLowerInvariant().Contains(searchTerm)));
+        }
+
+        // Apply sorting using enum values
+        var isDescending = request.SortOrder == SortOrder.Desc;
+
+        query = request.SortBy switch
+        {
+            SortField.DateUtc => isDescending
+                ? query.OrderByDescending(l => l.DateUtc)
+                : query.OrderBy(l => l.DateUtc),
+            SortField.Name => isDescending
+                ? query.OrderByDescending(l => l.Name)
+                : query.OrderBy(l => l.Name),
+            SortField.FlightNumber => isDescending
+                ? query.OrderByDescending(l => l.FlightNumber)
+                : query.OrderBy(l => l.FlightNumber),
+            SortField.Success => isDescending
+                ? query.OrderByDescending(l => l.Success)
+                : query.OrderBy(l => l.Success),
+            _ => query.OrderBy(l => l.DateUtc) // default sort
+        };
+
+        var totalCount = query.Count();
+        var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
+
+        // Apply pagination
+        var launches = query
+            .Skip((request.Page - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .ToList();
+
+        return new PaginatedLaunchesResponse
+        {
+            Launches = launches,
+            TotalCount = totalCount,
+            PageSize = request.PageSize,
+            CurrentPage = request.Page,
+            TotalPages = totalPages
+        };
     }
 
     public async Task<OneOf<List<LaunchResponse>, string>> GetLaunchesByDateAsync(DateTime date)
     {
         await Task.CompletedTask;
 
-        try
-        {
-            var launches = _launches.Where(l => l.DateUtc.Date == date.Date).ToList();
-            return launches;
-        }
-        catch (Exception ex)
-        {
-            return $"Error retrieving launches by date: {ex.Message}";
-        }
+        var launches = _launches.Where(l => l.DateUtc.Date == date.Date).ToList();
+        return launches;
     }
 
     public async Task<OneOf<LaunchDetailsResponse, string>> GetLaunchByIdAsync(string id)
     {
         await Task.CompletedTask;
 
-        try
+        var launch = _launches.FirstOrDefault(l => l.Id == id);
+        if (launch == null)
         {
-            var launch = _launches.FirstOrDefault(l => l.Id == id);
-            if (launch == null)
-            {
-                return "Launch not found";
-            }
-
-            // Convert to LaunchDetailsResponse
-            var launchDetails = new LaunchDetailsResponse
-            {
-                Id = launch.Id,
-                FlightNumber = launch.FlightNumber,
-                Name = launch.Name,
-                DateUtc = launch.DateUtc,
-                Success = launch.Success,
-                Details = launch.Details
-            };
-
-            return launchDetails;
+            return "Launch not found";
         }
-        catch (Exception ex)
+
+        // Convert to LaunchDetailsResponse
+        var launchDetails = new LaunchDetailsResponse
         {
-            return $"Error retrieving launch: {ex.Message}";
-        }
+            Id = launch.Id,
+            FlightNumber = launch.FlightNumber,
+            Name = launch.Name,
+            DateUtc = launch.DateUtc,
+            Success = launch.Success,
+            Details = launch.Details
+        };
+
+        return launchDetails;
     }
 
     public async Task<OneOf<int, string>> SaveLaunchesAsync(IEnumerable<Launch> launches)
     {
         await Task.CompletedTask;
 
-        try
+        var count = 0;
+        foreach (var launch in launches)
         {
-            var count = 0;
-            foreach (var launch in launches)
+            var dto = new LaunchResponse
             {
-                var dto = new LaunchResponse
-                {
-                    Id = launch.Id,
-                    Name = launch.Name,
-                    DateUtc = launch.DateUtc,
-                    FlightNumber = launch.FlightNumber,
-                    Success = launch.Success,
-                    Details = launch.Details
-                };
+                Id = launch.Id,
+                Name = launch.Name,
+                DateUtc = launch.DateUtc,
+                FlightNumber = launch.FlightNumber,
+                Success = launch.Success,
+                Details = launch.Details
+            };
 
-                var existingIndex = _launches.FindIndex(l => l.Id == dto.Id);
-                if (existingIndex >= 0)
-                {
-                    _launches[existingIndex] = dto;
-                }
-                else
-                {
-                    _launches.Add(dto);
-                }
-                count++;
+            var existingIndex = _launches.FindIndex(l => l.Id == dto.Id);
+            if (existingIndex >= 0)
+            {
+                _launches[existingIndex] = dto;
             }
+            else
+            {
+                _launches.Add(dto);
+            }
+            count++;
+        }
 
-            return count;
-        }
-        catch (Exception ex)
-        {
-            return $"Error saving launches: {ex.Message}";
-        }
+        return count;
     }
 }

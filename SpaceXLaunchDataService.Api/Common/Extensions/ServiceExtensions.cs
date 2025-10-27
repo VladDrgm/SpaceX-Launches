@@ -29,7 +29,6 @@ namespace SpaceXLaunchDataService.Api.Common.Extensions
             {
                 options.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
                 options.SerializerOptions.WriteIndented = true;
-                // Configure enums to serialize as strings instead of numbers
                 options.SerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
             });
 
