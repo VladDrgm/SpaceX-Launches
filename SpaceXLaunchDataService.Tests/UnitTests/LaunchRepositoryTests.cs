@@ -119,11 +119,24 @@ public class LaunchRepositoryTests
             SortOrder = SortOrder.Desc
         };
 
-        var mockLaunches = TestDataSeeder.GetTestLaunchResponses().Take(10).ToList();
+        // Create test data directly in test - no business logic in test project
+        var mockLaunches = new List<LaunchResponse>
+        {
+            new LaunchResponse
+            {
+                Id = "1",
+                FlightNumber = 1,
+                Name = "FalconSat",
+                DateUtc = new DateTime(2006, 3, 24, 22, 30, 0, DateTimeKind.Utc),
+                Success = false,
+                Details = "Engine failure at 33 seconds and loss of vehicle"
+            }
+        };
+
         var mockResponse = new PaginatedLaunchesResponse
         {
             Launches = mockLaunches,
-            TotalCount = 10,
+            TotalCount = 1,
             PageSize = 10,
             CurrentPage = 1,
             TotalPages = 1
@@ -141,7 +154,7 @@ public class LaunchRepositoryTests
         var paginatedResult = result.AsT0;
         paginatedResult.Should().NotBeNull();
         paginatedResult.Launches.Should().NotBeNull();
-        paginatedResult.TotalCount.Should().Be(10);
-        paginatedResult.Launches.Should().HaveCount(10);
+        paginatedResult.TotalCount.Should().Be(1);
+        paginatedResult.Launches.Should().HaveCount(1);
     }
 }

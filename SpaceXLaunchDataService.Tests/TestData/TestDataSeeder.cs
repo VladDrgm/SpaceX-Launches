@@ -1,6 +1,5 @@
 using SpaceXLaunchDataService.Api.Data;
 using SpaceXLaunchDataService.Api.Data.Models;
-using SpaceXLaunchDataService.Api.Features.Launches.Endpoints;
 
 namespace SpaceXLaunchDataService.Tests.TestData;
 
@@ -104,22 +103,6 @@ public static class TestDataSeeder
                 Details = "Second cargo delivery to the ISS"
             }
         };
-    }
-
-    /// <summary>
-    /// Gets the test launch data as LaunchResponse DTOs for in-memory repositories
-    /// </summary>
-    public static List<LaunchResponse> GetTestLaunchResponses()
-    {
-        return GetTestLaunches().Select(launch => new LaunchResponse
-        {
-            Id = launch.Id,
-            FlightNumber = launch.FlightNumber,
-            Name = launch.Name,
-            DateUtc = launch.DateUtc,
-            Success = launch.Success,
-            Details = launch.Details
-        }).ToList();
     }
 
     /// <summary>

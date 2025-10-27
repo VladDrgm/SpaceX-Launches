@@ -2,6 +2,25 @@
 
 A .NET 9 minimal API service for accessing SpaceX launch data with filtering, pagination, and automated synchronization.
 
+## Requirements
+- .NET 9 SDK
+
+## How to Run
+1. Clone the repository:
+
+2. Navigate to the API project directory (where the .csproj file is located)
+
+3. Restore dependencies and build the project:
+   ```bash
+   dotnet restore
+   dotnet build
+   ```
+
+4. Run the application:
+   ```bash
+   dotnet run
+   ```
+
 ## API Choice
 
 **SpaceX API (v4)** - `https://api.spacexdata.com/v4/`
