@@ -21,5 +21,5 @@ public class Launch
     public bool? Success { get; set; } // Nullable: true/false/null
 
     [JsonPropertyName("details")]
-    public required string Details { get; set; }
+    public string? Details { get; set; }
 }

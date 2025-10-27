@@ -210,7 +210,7 @@ public class SqliteLaunchRepository : ILaunchRepository
                 Name = launch.Name,
                 DateUtc = launch.DateUtc.ToString("yyyy-MM-dd HH:mm:ss"),
                 Success = launch.Success.HasValue ? (launch.Success.Value ? 1 : 0) : (int?)null,
-                Details = launch.Details,
+                Details = launch.Details ?? "",
                 CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
                 UpdatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
             });

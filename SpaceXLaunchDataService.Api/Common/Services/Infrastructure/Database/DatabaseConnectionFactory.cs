@@ -7,7 +7,7 @@ namespace SpaceXLaunchDataService.Api.Common.Services.Infrastructure.Database;
 public interface IDatabaseConnectionFactory
 {
     IDbConnection CreateConnection();
-    Task InitializeDatabaseAsync();
+    Task<bool> InitializeDatabaseAsync();
     void EnsureDatabaseExists();
 }
 
@@ -32,8 +32,12 @@ public class SqliteDatabaseConnectionFactory : IDatabaseConnectionFactory
         return new SqliteConnection(_connectionString);
     }
 
-    public async Task InitializeDatabaseAsync()
+    public async Task<bool> InitializeDatabaseAsync()
     {
+        // Check if database already exists
+        var databaseExisted = File.Exists(_databasePath);
+        var isNewDatabase = false;
+
         // Ensure database directory exists
         if (!Directory.Exists(_databaseDirectory))
         {
@@ -51,7 +55,7 @@ public class SqliteDatabaseConnectionFactory : IDatabaseConnectionFactory
                 Name TEXT NOT NULL,
                 DateUtc TEXT NOT NULL,
                 Success INTEGER NULL,
-                Details TEXT NOT NULL,
+                Details TEXT NULL,
                 CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 UpdatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
@@ -63,6 +67,15 @@ public class SqliteDatabaseConnectionFactory : IDatabaseConnectionFactory
             """;
 
         await connection.ExecuteAsync(createTableSql);
+
+        // Check if this is a new database by checking if we have any launches
+        if (!databaseExisted)
+        {
+            var launchCount = await connection.QuerySingleAsync<int>("SELECT COUNT(*) FROM Launches");
+            isNewDatabase = launchCount == 0;
+        }
+
+        return isNewDatabase;
     }
 
     public void EnsureDatabaseExists()
@@ -84,7 +97,7 @@ public class SqliteDatabaseConnectionFactory : IDatabaseConnectionFactory
                 Name TEXT NOT NULL,
                 DateUtc TEXT NOT NULL,
                 Success INTEGER NULL,
-                Details TEXT NOT NULL,
+                Details TEXT NULL,
                 CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 UpdatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             );

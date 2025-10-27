@@ -15,8 +15,28 @@ public class SpaceXApiService : ISpaceXApiService
 
     public async Task<OneOf<List<Launch>, string>> FetchLaunchesAsync()
     {
-        // Stub implementation - in production this would fetch from SpaceX API
-        await Task.CompletedTask;
-        return new List<Launch>();
+        var response = await _httpClient.GetAsync("launches");
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return $"Error fetching launches: {response.ReasonPhrase}";
+        }
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        if (string.IsNullOrEmpty(content))
+        {
+            return "Empty response from SpaceX API";
+        }
+
+        var options = new System.Text.Json.JsonSerializerOptions
+        {
+            PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.SnakeCaseLower,
+            PropertyNameCaseInsensitive = true
+        };
+
+        var launches = System.Text.Json.JsonSerializer.Deserialize<List<Launch>>(content, options);
+
+        return launches ?? new List<Launch>();
     }
 }
