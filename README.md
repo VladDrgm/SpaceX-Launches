@@ -49,3 +49,8 @@ A .NET 9 minimal API service for accessing SpaceX launch data with filtering, pa
 - **Monitoring**: Application insights and metrics collection
 - **Configuration Management**: Azure Key Vault or similar
 - **CI/CD Pipeline**: Automated testing, deployment, and database migrations
+
+### Developer Experience
+- **Split Swagger configuration properly**: API usage guides and examples
+- **CI/CD Pipeline**: Automated testing, deployment, and database migrations
+- **Testing project mock setup**: Setup better mocking, documentation, and contribution guidelines

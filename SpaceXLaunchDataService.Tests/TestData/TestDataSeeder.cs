@@ -1,13 +1,17 @@
 using SpaceXLaunchDataService.Api.Data;
 using SpaceXLaunchDataService.Api.Data.Models;
+using SpaceXLaunchDataService.Api.Features.Launches.Endpoints;
 
 namespace SpaceXLaunchDataService.Tests.TestData;
 
 public static class TestDataSeeder
 {
-    public static async Task SeedTestDataAsync(ILaunchRepository repository)
+    /// <summary>
+    /// Gets the test launch data as Launch domain models
+    /// </summary>
+    public static List<Launch> GetTestLaunches()
     {
-        var testLaunches = new List<Launch>
+        return new List<Launch>
         {
             new Launch
             {
@@ -100,7 +104,30 @@ public static class TestDataSeeder
                 Details = "Second cargo delivery to the ISS"
             }
         };
+    }
 
+    /// <summary>
+    /// Gets the test launch data as LaunchResponse DTOs for in-memory repositories
+    /// </summary>
+    public static List<LaunchResponse> GetTestLaunchResponses()
+    {
+        return GetTestLaunches().Select(launch => new LaunchResponse
+        {
+            Id = launch.Id,
+            FlightNumber = launch.FlightNumber,
+            Name = launch.Name,
+            DateUtc = launch.DateUtc,
+            Success = launch.Success,
+            Details = launch.Details
+        }).ToList();
+    }
+
+    /// <summary>
+    /// Seeds test data into a repository (for integration tests)
+    /// </summary>
+    public static async Task SeedTestDataAsync(ILaunchRepository repository)
+    {
+        var testLaunches = GetTestLaunches();
         await repository.SaveLaunchesAsync(testLaunches);
     }
 }
