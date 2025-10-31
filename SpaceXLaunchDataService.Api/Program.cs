@@ -13,7 +13,7 @@ builder.Services.ConfigureHealthChecks();
 var app = builder.Build();
 
 // Initialize database on startup (async)
-// await InitializeDatabaseAsync(app.Services);
+await DatabaseInitializer.InitializeDatabaseAsync(app.Services);
 
 // Configure pipeline
 app.ConfigurePipeline();
@@ -25,8 +25,6 @@ app.MapEndpoints();
 app.ConfigureApplicationStartupLogging();
 
 app.Run();
-
-await DatabaseInitializer.InitializeDatabaseAsync(app.Services);
 
 // Make the implicit Program class public for testing
 public partial class Program { }
