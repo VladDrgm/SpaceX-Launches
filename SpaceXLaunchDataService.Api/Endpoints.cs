@@ -31,4 +31,11 @@ public static class Endpoints
         launches.MapPost("sync", SyncLaunches.HandleAsync)
             .ConfigureSyncLaunchesSwagger();
     }
+
+    private static void MapRocketsEndpoints(WebApplication app)
+    {
+        //BLABLA    
+    }
+    
+    //OTHER ENDPOINTS  
 }
