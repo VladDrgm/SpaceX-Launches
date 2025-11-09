@@ -54,7 +54,11 @@ public static class GetLaunchDetails
 
         return result.Match<IResult>(
             launch => Results.Ok(launch),
-            error => Results.NotFound(new { Error = error })
+            error => error.Code switch
+            {
+                "NOT_FOUND" => Results.NotFound(new { Error = error.Message, Code = error.Code }),
+                _ => Results.BadRequest(new { Error = error.Message, Code = error.Code, Details = error.Details })
+            }
         );
     }
 }

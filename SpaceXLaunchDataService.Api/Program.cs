@@ -5,10 +5,10 @@ using SpaceXLaunchDataService.Api.Common.Services.Infrastructure.Database;
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure services
-builder.Services.ConfigureApplicationServices(builder.Configuration);
-builder.Services.ConfigureJsonSerialization();
-builder.Services.ConfigureSwagger();
-builder.Services.ConfigureHealthChecks();
+builder.Services.ConfigureApplicationServices(builder.Configuration)
+    .ConfigureJsonSerialization()
+    .ConfigureSwagger()
+    .ConfigureHealthChecks();
 
 var app = builder.Build();
 

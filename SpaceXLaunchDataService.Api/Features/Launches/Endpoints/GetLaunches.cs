@@ -205,7 +205,7 @@ public static class GetLaunches
 
         return result.Match<IResult>(
             launches => Results.Ok(launches),
-            error => Results.BadRequest(new { Error = error })
+            error => Results.BadRequest(new { Error = error.Message, Code = error.Code, Details = error.Details })
         );
     }
 }

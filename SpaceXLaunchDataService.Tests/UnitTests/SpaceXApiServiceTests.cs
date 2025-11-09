@@ -1,6 +1,8 @@
+using System.Net;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Moq.Protected;
 using SpaceXLaunchDataService.Api.Data.Models;
 using SpaceXLaunchDataService.Api.Features.Launches.Services;
 using Xunit;
@@ -9,36 +11,60 @@ namespace SpaceXLaunchDataService.Tests.UnitTests;
 
 public class SpaceXApiServiceTests
 {
-    private readonly HttpClient _httpClient;
-    private readonly SpaceXApiService _service;
-
-    public SpaceXApiServiceTests()
-    {
-        _httpClient = new HttpClient();
-         
-        _service = new SpaceXApiService(_httpClient, new Mock<ILogger<SpaceXApiService>>().Object);
-    }
-
     [Fact]
-    public async Task FetchLaunchesAsync_ShouldReturnEmptyList_WithStubImplementation()
+    public async Task FetchLaunchesAsync_ShouldReturnEmptyList_WhenApiReturnsEmptyArray()
     {
-        // Act - Testing the current stub implementation
-        var result = await _service.FetchLaunchesAsync();
+        // Arrange
+        var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
+        mockHttpMessageHandler
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent("[]")
+            });
+
+        var httpClient = new HttpClient(mockHttpMessageHandler.Object);
+        var service = new SpaceXApiService(httpClient, new Mock<ILogger<SpaceXApiService>>().Object);
+
+        // Act
+        var result = await service.FetchLaunchesAsync();
 
         // Assert
         result.IsT0.Should().BeTrue();
         var returnedLaunches = result.AsT0;
         returnedLaunches.Should().NotBeNull();
         returnedLaunches.Should().BeOfType<List<Launch>>();
-        returnedLaunches.Should().BeEmpty(); // Stub returns empty list
+        returnedLaunches.Should().BeEmpty();
     }
 
     [Fact]
     public async Task FetchLaunchesAsync_ShouldReturnSuccessfully_WhenServiceIsCalledMultipleTimes()
     {
+        // Arrange
+        var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
+        mockHttpMessageHandler
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent("[]")
+            });
+
+        var httpClient = new HttpClient(mockHttpMessageHandler.Object);
+        var service = new SpaceXApiService(httpClient, new Mock<ILogger<SpaceXApiService>>().Object);
+
         // Act - Call the service multiple times
-        var result1 = await _service.FetchLaunchesAsync();
-        var result2 = await _service.FetchLaunchesAsync();
+        var result1 = await service.FetchLaunchesAsync();
+        var result2 = await service.FetchLaunchesAsync();
 
         // Assert - Both calls should succeed with empty lists
         result1.IsT0.Should().BeTrue();

@@ -55,19 +55,20 @@ public class LaunchRepositoryTests
     {
         // Arrange
         var nonExistentId = "nonexistent-launch-id";
-        var errorMessage = "Launch not found";
+        var serviceError = SpaceXLaunchDataService.Api.Common.Models.ServiceError.NotFound("Launch not found");
 
         _mockRepository
             .Setup(r => r.GetLaunchByIdAsync(nonExistentId))
-            .ReturnsAsync(errorMessage);
+            .ReturnsAsync(serviceError);
 
         // Act
         var result = await _repository.GetLaunchByIdAsync(nonExistentId);
 
         // Assert
-        result.IsT1.Should().BeTrue(); // Should be string (error message)
+        result.IsT1.Should().BeTrue(); // Should be ServiceError
         var error = result.AsT1;
-        error.Should().Contain("Launch not found");
+        error.Message.Should().Contain("Launch not found");
+        error.Code.Should().Be("NOT_FOUND");
     }
 
     [Theory]

@@ -48,9 +48,9 @@ public class SyncLaunchesEndpointTests
     public async Task HandleAsync_ShouldReturnBadRequest_WhenApiServiceReturnsError()
     {
         // Arrange
-        var errorMessage = "SpaceX API is unavailable";
+        var serviceError = SpaceXLaunchDataService.Api.Common.Models.ServiceError.Http("SpaceX API is unavailable");
         _mockApiService.Setup(x => x.FetchLaunchesAsync())
-            .ReturnsAsync(errorMessage);
+            .ReturnsAsync(serviceError);
 
         // Act
         var result = await SyncLaunches.HandleAsync(_mockApiService.Object);

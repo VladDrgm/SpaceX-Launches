@@ -1,5 +1,6 @@
 using OneOf;
 using Polly;
+using SpaceXLaunchDataService.Api.Common.Models;
 using SpaceXLaunchDataService.Api.Data.Models;
 using SpaceXLaunchDataService.Api.Common.Services.Infrastructure.Resilience;
 
@@ -23,7 +24,7 @@ public class SpaceXApiService : ISpaceXApiService
         _resiliencePipeline = ResiliencePolicies.CreateHttpResiliencePipeline(logger);
     }
 
-    public async Task<OneOf<List<Launch>, string>> FetchLaunchesAsync()
+    public async Task<OneOf<List<Launch>, ServiceError>> FetchLaunchesAsync()
     {
         try
         {
@@ -34,14 +35,19 @@ public class SpaceXApiService : ISpaceXApiService
 
             if (!response.IsSuccessStatusCode)
             {
-                return $"Error fetching launches: {response.ReasonPhrase}";
+                _logger.LogWarning("SpaceX API returned status code {StatusCode}: {ReasonPhrase}", 
+                    response.StatusCode, response.ReasonPhrase);
+                return ServiceError.Http(
+                    $"Error fetching launches from SpaceX API",
+                    details: $"Status: {response.StatusCode} - {response.ReasonPhrase}");
             }
 
             var content = await response.Content.ReadAsStringAsync();
 
             if (string.IsNullOrEmpty(content))
             {
-                return "Empty response from SpaceX API";
+                _logger.LogWarning("SpaceX API returned empty response");
+                return ServiceError.Http("Empty response from SpaceX API");
             }
 
             var options = new System.Text.Json.JsonSerializerOptions
@@ -59,7 +65,7 @@ public class SpaceXApiService : ISpaceXApiService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to fetch launches from SpaceX API after all retry attempts");
-            return $"Failed to fetch launches: {ex.Message}";
+            return ServiceError.FromException(ex, "Failed to fetch launches from SpaceX API");
         }
     }
 }

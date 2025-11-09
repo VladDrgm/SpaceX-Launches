@@ -1,6 +1,7 @@
 using Dapper;
 using OneOf;
 using Polly;
+using SpaceXLaunchDataService.Api.Common.Models;
 using SpaceXLaunchDataService.Api.Common.Services.Infrastructure.Resilience;
 using SpaceXLaunchDataService.Api.Data;
 using SpaceXLaunchDataService.Api.Data.Models;
@@ -26,7 +27,7 @@ public class SqliteLaunchRepository : ILaunchRepository
         _resiliencePipeline = ResiliencePolicies.CreateDatabaseResiliencePipeline(logger);
     }
 
-    public async Task<OneOf<PaginatedLaunchesResponse, string>> GetLaunchesAsync(GetLaunchesRequest request)
+    public async Task<OneOf<PaginatedLaunchesResponse, ServiceError>> GetLaunchesAsync(GetLaunchesRequest request)
     {
         try
         {
@@ -121,11 +122,12 @@ public class SqliteLaunchRepository : ILaunchRepository
         }
         catch (Exception ex)
         {
-            return $"Error retrieving launches from database: {ex.Message}";
+            _logger.LogError(ex, "Error retrieving launches from database");
+            return ServiceError.Database("Failed to retrieve launches from database", ex);
         }
     }
 
-    public async Task<OneOf<List<LaunchResponse>, string>> GetLaunchesByDateAsync(DateTime date)
+    public async Task<OneOf<List<LaunchResponse>, ServiceError>> GetLaunchesByDateAsync(DateTime date)
     {
         try
         {
@@ -154,11 +156,12 @@ public class SqliteLaunchRepository : ILaunchRepository
         }
         catch (Exception ex)
         {
-            return $"Error retrieving launches by date from database: {ex.Message}";
+            _logger.LogError(ex, "Error retrieving launches by date from database for date {Date}", date);
+            return ServiceError.Database("Failed to retrieve launches by date from database", ex);
         }
     }
 
-    public async Task<OneOf<LaunchDetailsResponse, string>> GetLaunchByIdAsync(string id)
+    public async Task<OneOf<LaunchDetailsResponse, ServiceError>> GetLaunchByIdAsync(string id)
     {
         try
         {
@@ -174,7 +177,8 @@ public class SqliteLaunchRepository : ILaunchRepository
 
             if (entity == null)
             {
-                return "Launch not found";
+                _logger.LogWarning("Launch with ID {Id} not found", id);
+                return ServiceError.NotFound($"Launch with ID '{id}' not found");
             }
 
             var launchDetails = new LaunchDetailsResponse
@@ -191,11 +195,12 @@ public class SqliteLaunchRepository : ILaunchRepository
         }
         catch (Exception ex)
         {
-            return $"Error retrieving launch from database: {ex.Message}";
+            _logger.LogError(ex, "Error retrieving launch by ID {Id} from database", id);
+            return ServiceError.Database("Failed to retrieve launch from database", ex);
         }
     }
 
-    public async Task<OneOf<int, string>> SaveLaunchesAsync(IEnumerable<Launch> launches)
+    public async Task<OneOf<int, ServiceError>> SaveLaunchesAsync(IEnumerable<Launch> launches)
     {
         try
         {
@@ -218,9 +223,9 @@ public class SqliteLaunchRepository : ILaunchRepository
 
                 var entities = launches.Select(launch => new
                 {
-                    Id = launch.Id,
-                    FlightNumber = launch.FlightNumber,
-                    Name = launch.Name,
+                    launch.Id,
+                    launch.FlightNumber,
+                    launch.Name,
                     DateUtc = launch.DateUtc.ToString("yyyy-MM-dd HH:mm:ss"),
                     Success = launch.Success.HasValue ? (launch.Success.Value ? 1 : 0) : (int?)null,
                     Details = launch.Details ?? "",
@@ -237,7 +242,8 @@ public class SqliteLaunchRepository : ILaunchRepository
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to save launches to database after all retry attempts");
-            return $"Error saving launches to database: {ex.Message}";
+            return ServiceError.Database("Failed to save launches to database", ex);
         }
     }
 }
+

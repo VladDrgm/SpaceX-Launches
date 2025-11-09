@@ -121,18 +121,23 @@ public class ResilienceTests
         var result = await service.FetchLaunchesAsync();
 
         // Assert
-        Assert.True(result.IsT1); // Should fail after all retries
+        Assert.True(result.IsT1); // Should fail after all retries (returns ServiceError)
         Assert.Equal(4, attemptCount); // Initial attempt + 3 retries
         
-        // Verify error was logged
+        // Verify ServiceError was returned
+        var error = result.AsT1;
+        Assert.Equal("HTTP_ERROR", error.Code);
+        Assert.Contains("Error fetching launches", error.Message);
+        
+        // Verify warning logs for each retry attempt (not error log, since we return ServiceError)
         mockLogger.Verify(
             x => x.Log(
-                LogLevel.Error,
+                LogLevel.Warning,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Failed to fetch launches")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("HTTP request failed")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
+            Times.Exactly(3)); // 3 retry warnings
     }
 
     [Fact]

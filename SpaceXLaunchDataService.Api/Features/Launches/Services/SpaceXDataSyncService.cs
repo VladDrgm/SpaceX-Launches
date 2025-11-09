@@ -84,14 +84,14 @@ public class SpaceXDataSyncService : BackgroundService
                     },
                     error =>
                     {
-                        _logger.LogError("Failed to save launches: {Error}", error);
-                        throw new InvalidOperationException($"Failed to save launches: {error}");
+                        _logger.LogError(error.Exception, "Failed to save launches: [{Code}] {Message}", error.Code, error.Message);
+                        throw new InvalidOperationException($"Failed to save launches: {error.Message}", error.Exception);
                     });
             },
             async error =>
             {
-                _logger.LogError("Failed to fetch launches from SpaceX API: {Error}", error);
-                throw new InvalidOperationException($"Failed to fetch launches: {error}");
+                _logger.LogError(error.Exception, "Failed to fetch launches from SpaceX API: [{Code}] {Message}", error.Code, error.Message);
+                throw new InvalidOperationException($"Failed to fetch launches: {error.Message}", error.Exception);
             });
     }
 }

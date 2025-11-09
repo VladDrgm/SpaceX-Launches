@@ -58,9 +58,9 @@ public class GetLaunchesEndpointTests
     public async Task HandleAsync_ShouldReturnBadRequest_WhenRepositoryReturnsError()
     {
         // Arrange
-        var errorMessage = "Database connection failed";
+        var serviceError = SpaceXLaunchDataService.Api.Common.Models.ServiceError.Database("Database connection failed");
         _mockRepository.Setup(x => x.GetLaunchesAsync(It.IsAny<GetLaunchesRequest>()))
-            .ReturnsAsync(errorMessage);
+            .ReturnsAsync(serviceError);
 
         // Act
         var result = await GetLaunches.HandleAsync(
