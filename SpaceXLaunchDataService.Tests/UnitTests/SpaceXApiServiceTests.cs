@@ -1,4 +1,6 @@
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Moq;
 using SpaceXLaunchDataService.Api.Data.Models;
 using SpaceXLaunchDataService.Api.Features.Launches.Services;
 using Xunit;
@@ -13,7 +15,8 @@ public class SpaceXApiServiceTests
     public SpaceXApiServiceTests()
     {
         _httpClient = new HttpClient();
-        _service = new SpaceXApiService(_httpClient);
+         
+        _service = new SpaceXApiService(_httpClient, new Mock<ILogger<SpaceXApiService>>().Object);
     }
 
     [Fact]
@@ -53,7 +56,7 @@ public class SpaceXApiServiceTests
     {
         // Arrange & Act
         using var httpClient = new HttpClient();
-        var service = new SpaceXApiService(httpClient);
+        var service = new SpaceXApiService(httpClient, new Mock<ILogger<SpaceXApiService>>().Object);
 
         // Assert
         service.Should().NotBeNull();

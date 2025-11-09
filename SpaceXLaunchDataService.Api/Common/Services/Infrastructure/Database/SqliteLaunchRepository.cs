@@ -1,5 +1,7 @@
 using Dapper;
 using OneOf;
+using Polly;
+using SpaceXLaunchDataService.Api.Common.Services.Infrastructure.Resilience;
 using SpaceXLaunchDataService.Api.Data;
 using SpaceXLaunchDataService.Api.Data.Models;
 using SpaceXLaunchDataService.Api.Data.Models.Enums;
@@ -10,10 +12,18 @@ namespace SpaceXLaunchDataService.Api.Common.Services.Infrastructure.Database;
 public class SqliteLaunchRepository : ILaunchRepository
 {
     private readonly IDatabaseConnectionFactory _connectionFactory;
+    private readonly ResiliencePipeline _resiliencePipeline;
+    private readonly ILogger<SqliteLaunchRepository> _logger;
 
-    public SqliteLaunchRepository(IDatabaseConnectionFactory connectionFactory)
+    public SqliteLaunchRepository(
+        IDatabaseConnectionFactory connectionFactory,
+        ILogger<SqliteLaunchRepository> logger)
     {
         _connectionFactory = connectionFactory;
+        _logger = logger;
+        
+        // Initialize resilience pipeline for database operations
+        _resiliencePipeline = ResiliencePolicies.CreateDatabaseResiliencePipeline(logger);
     }
 
     public async Task<OneOf<PaginatedLaunchesResponse, string>> GetLaunchesAsync(GetLaunchesRequest request)
@@ -189,37 +199,44 @@ public class SqliteLaunchRepository : ILaunchRepository
     {
         try
         {
-            using var connection = _connectionFactory.CreateConnection();
-
-            var upsertSql = """
-                INSERT INTO Launches (Id, FlightNumber, Name, DateUtc, Success, Details, CreatedAt, UpdatedAt)
-                VALUES (@Id, @FlightNumber, @Name, @DateUtc, @Success, @Details, @CreatedAt, @UpdatedAt)
-                ON CONFLICT(Id) DO UPDATE SET
-                    FlightNumber = excluded.FlightNumber,
-                    Name = excluded.Name,
-                    DateUtc = excluded.DateUtc,
-                    Success = excluded.Success,
-                    Details = excluded.Details,
-                    UpdatedAt = excluded.UpdatedAt
-                """;
-
-            var entities = launches.Select(launch => new
+            // Execute database operation with resilience (retry on transient errors)
+            var affectedRows = await _resiliencePipeline.ExecuteAsync(async ct =>
             {
-                Id = launch.Id,
-                FlightNumber = launch.FlightNumber,
-                Name = launch.Name,
-                DateUtc = launch.DateUtc.ToString("yyyy-MM-dd HH:mm:ss"),
-                Success = launch.Success.HasValue ? (launch.Success.Value ? 1 : 0) : (int?)null,
-                Details = launch.Details ?? "",
-                CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
-                UpdatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
-            });
+                using var connection = _connectionFactory.CreateConnection();
 
-            var affectedRows = await connection.ExecuteAsync(upsertSql, entities);
+                var upsertSql = """
+                    INSERT INTO Launches (Id, FlightNumber, Name, DateUtc, Success, Details, CreatedAt, UpdatedAt)
+                    VALUES (@Id, @FlightNumber, @Name, @DateUtc, @Success, @Details, @CreatedAt, @UpdatedAt)
+                    ON CONFLICT(Id) DO UPDATE SET
+                        FlightNumber = excluded.FlightNumber,
+                        Name = excluded.Name,
+                        DateUtc = excluded.DateUtc,
+                        Success = excluded.Success,
+                        Details = excluded.Details,
+                        UpdatedAt = excluded.UpdatedAt
+                    """;
+
+                var entities = launches.Select(launch => new
+                {
+                    Id = launch.Id,
+                    FlightNumber = launch.FlightNumber,
+                    Name = launch.Name,
+                    DateUtc = launch.DateUtc.ToString("yyyy-MM-dd HH:mm:ss"),
+                    Success = launch.Success.HasValue ? (launch.Success.Value ? 1 : 0) : (int?)null,
+                    Details = launch.Details ?? "",
+                    CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
+                    UpdatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
+                });
+
+                return await connection.ExecuteAsync(upsertSql, entities);
+            }, CancellationToken.None);
+            
+            _logger.LogInformation("Successfully saved {Count} launches to database", affectedRows);
             return affectedRows;
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to save launches to database after all retry attempts");
             return $"Error saving launches to database: {ex.Message}";
         }
     }
