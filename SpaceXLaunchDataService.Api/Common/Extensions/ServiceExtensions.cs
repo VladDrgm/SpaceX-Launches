@@ -2,6 +2,8 @@ using SpaceXLaunchDataService.Api.Common.Filters;
 using SpaceXLaunchDataService.Api.Common.Services.Infrastructure.Database;
 using SpaceXLaunchDataService.Api.Data;
 using SpaceXLaunchDataService.Api.Features.Launches.Services;
+using SpaceXLaunchDataService.Api.Common.CQRS;
+using SpaceXLaunchDataService.Api.Features.Launches.Handlers;
 
 namespace SpaceXLaunchDataService.Api.Common.Extensions
 {
@@ -9,6 +11,9 @@ namespace SpaceXLaunchDataService.Api.Common.Extensions
     {
         public static IServiceCollection ConfigureApplicationServices(this IServiceCollection services, IConfiguration configuration)
         {
+            // Register CQRS services
+            services.ConfigureCQRS();
+
             // Register database services
             services.AddSingleton<IDatabaseConnectionFactory, SqliteDatabaseConnectionFactory>();
             services.AddScoped<ILaunchRepository, SqliteLaunchRepository>();
@@ -20,6 +25,30 @@ namespace SpaceXLaunchDataService.Api.Common.Extensions
             // Add HttpClient for external API calls
             services.AddHttpClient<ISpaceXApiService, SpaceXApiService>();
 
+            return services;
+        }
+
+        public static IServiceCollection ConfigureCQRS(this IServiceCollection services)
+        {
+            // Register the mediator as singleton
+            services.AddSingleton<IMediator, Mediator>();
+
+            // Register all handlers from the Features.Launches.Handlers namespace
+            var handlersAssembly = typeof(GetLaunchesHandler).Assembly;
+            var handlerTypes = handlersAssembly.GetTypes()
+                .Where(t => t.IsClass && !t.IsAbstract &&
+                           t.GetInterfaces().Any(i => i.IsGenericType &&
+                                                     i.GetGenericTypeDefinition() == typeof(IRequestHandler<,>)))
+                .ToList();
+
+            foreach (var handlerType in handlerTypes)
+            {
+                var interfaceType = handlerType.GetInterfaces()
+                    .First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRequestHandler<,>));
+
+                // Register handlers as scoped to match repository lifetime
+                services.AddScoped(interfaceType, handlerType);
+            }
             return services;
         }
 

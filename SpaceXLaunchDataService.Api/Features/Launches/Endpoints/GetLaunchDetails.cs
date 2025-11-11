@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
-using SpaceXLaunchDataService.Api.Data;
+using SpaceXLaunchDataService.Api.Common.CQRS;
+using SpaceXLaunchDataService.Api.Features.Launches.Queries;
 
 namespace SpaceXLaunchDataService.Api.Features.Launches.Endpoints;
 
@@ -35,14 +36,14 @@ public static class GetLaunchDetails
     /// Retrieves detailed information for a specific SpaceX launch by its ID
     /// </summary>
     /// <param name="id">Launch ID. Examples: "1" (FalconSat), "2" (DemoSat), "3" (Trailblazer)</param>
-    /// <param name="repository">Launch repository service</param>
+    /// <param name="mediator">CQRS mediator for dispatching queries</param>
     /// <returns>Detailed launch information</returns>
     /// <response code="200">Successfully retrieved launch details</response>
     /// <response code="400">Invalid launch ID provided</response>
     /// <response code="404">Launch not found with the specified ID</response>
     public static async Task<IResult> HandleAsync(
         [FromRoute] string id,
-        ILaunchRepository repository)
+        IMediator mediator)
     {
         // Validate that ID is not null or empty
         if (string.IsNullOrWhiteSpace(id))
@@ -50,7 +51,8 @@ public static class GetLaunchDetails
             return Results.BadRequest(new { Error = "Launch ID is required. Use a valid launch ID (e.g., '1', '2', '3')" });
         }
 
-        var result = await repository.GetLaunchByIdAsync(id);
+        var query = new GetLaunchByIdQuery(id);
+        var result = await mediator.Send(query);
 
         return result.Match<IResult>(
             launch => Results.Ok(launch),

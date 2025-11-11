@@ -1,7 +1,8 @@
 using OneOf;
 using SpaceXLaunchDataService.Api.Common.Models;
 using SpaceXLaunchDataService.Api.Data.Models;
-using SpaceXLaunchDataService.Api.Features.Launches.Endpoints;
+using SpaceXLaunchDataService.Api.Features.Launches.Models;
+using SpaceXLaunchDataService.Api.Features.Launches.Queries;
 
 namespace SpaceXLaunchDataService.Api.Data;
 

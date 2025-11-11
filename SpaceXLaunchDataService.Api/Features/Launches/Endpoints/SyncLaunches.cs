@@ -1,15 +1,24 @@
-using SpaceXLaunchDataService.Api.Features.Launches.Services;
+using SpaceXLaunchDataService.Api.Common.CQRS;
+using SpaceXLaunchDataService.Api.Features.Launches.Commands;
 
 namespace SpaceXLaunchDataService.Api.Features.Launches.Endpoints;
 
 public static class SyncLaunches
 {
-    public static async Task<IResult> HandleAsync(ISpaceXApiService spaceXService)
+    /// <summary>
+    /// Triggers synchronization of launch data from the SpaceX API
+    /// </summary>
+    /// <param name="mediator">CQRS mediator for dispatching commands</param>
+    /// <returns>Synchronization result</returns>
+    /// <response code="200">Successfully synchronized launch data</response>
+    /// <response code="400">Synchronization failed</response>
+    public static async Task<IResult> HandleAsync(IMediator mediator)
     {
-        var result = await spaceXService.FetchLaunchesAsync();
+        var command = new SyncLaunchesFromExternalApiCommand();
+        var result = await mediator.Send(command);
 
         return result.Match<IResult>(
-            launches => Results.Ok(new SyncSuccessResponse($"Synced {launches.Count} launches", launches.Count)),
+            count => Results.Ok(new SyncSuccessResponse($"Successfully synchronized {count} launches", count)),
             error => Results.BadRequest(new SyncErrorResponse(error.Message, error.Code, error.Details))
         );
     }

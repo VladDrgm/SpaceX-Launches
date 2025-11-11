@@ -2,8 +2,9 @@ using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
-using SpaceXLaunchDataService.Api.Data;
+using SpaceXLaunchDataService.Api.Common.CQRS;
 using SpaceXLaunchDataService.Api.Data.Models.Enums;
+using SpaceXLaunchDataService.Api.Features.Launches.Queries;
 
 namespace SpaceXLaunchDataService.Api.Features.Launches.Endpoints;
 
@@ -129,7 +130,7 @@ public static class GetLaunches
     /// <param name="fromDate">Start date filter in yyyy-MM-dd format (e.g., 2006-03-24)</param>
     /// <param name="toDate">End date filter in yyyy-MM-dd format (e.g., 2024-12-31)</param>
     /// <param name="searchTerm">Search in mission names and details</param>
-    /// <param name="repository">Launch repository service</param>
+    /// <param name="mediator">CQRS mediator for dispatching queries</param>
     /// <returns>Paginated launch results</returns>
     /// <response code="200">Successfully retrieved launches</response>
     /// <response code="400">Invalid request parameters</response>
@@ -142,7 +143,7 @@ public static class GetLaunches
         [FromQuery] string? fromDate = null,
         [FromQuery] string? toDate = null,
         [FromQuery] string? searchTerm = null,
-        ILaunchRepository repository = null!)
+        IMediator mediator = null!)
     {
         // Parse date filters if provided
         DateTime? parsedFromDate = null;
@@ -188,24 +189,23 @@ public static class GetLaunches
             return Results.BadRequest(new { Error = "PageSize must be between 1 and 100" });
         }
 
-        // Create request with parsed enum values
-        var request = new GetLaunchesRequest
-        {
-            Page = page,
-            PageSize = pageSize,
-            SortBy = parsedSortBy,
-            SortOrder = parsedSortOrder,
-            Success = success,
-            FromDate = parsedFromDate,
-            ToDate = parsedToDate,
-            SearchTerm = searchTerm
-        };
+        // Create query with parsed enum values
+        var query = new GetLaunchesQuery(
+            Page: page,
+            PageSize: pageSize,
+            SortBy: parsedSortBy,
+            SortOrder: parsedSortOrder,
+            Success: success,
+            FromDate: parsedFromDate,
+            ToDate: parsedToDate,
+            SearchTerm: searchTerm
+        );
 
-        var result = await repository.GetLaunchesAsync(request);
+        var result = await mediator.Send(query);
 
         return result.Match<IResult>(
             launches => Results.Ok(launches),
-            error => Results.BadRequest(new { Error = error.Message, Code = error.Code, Details = error.Details })
+            error => Results.BadRequest(new { Error = error.Message })
         );
     }
 }

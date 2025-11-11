@@ -6,7 +6,7 @@ using SpaceXLaunchDataService.Api.Common.Services.Infrastructure.Resilience;
 using SpaceXLaunchDataService.Api.Data;
 using SpaceXLaunchDataService.Api.Data.Models;
 using SpaceXLaunchDataService.Api.Data.Models.Enums;
-using SpaceXLaunchDataService.Api.Features.Launches.Endpoints;
+using SpaceXLaunchDataService.Api.Features.Launches.Models;
 
 namespace SpaceXLaunchDataService.Api.Common.Services.Infrastructure.Database;
 
@@ -22,7 +22,7 @@ public class SqliteLaunchRepository : ILaunchRepository
     {
         _connectionFactory = connectionFactory;
         _logger = logger;
-        
+
         // Initialize resilience pipeline for database operations
         _resiliencePipeline = ResiliencePolicies.CreateDatabaseResiliencePipeline(logger);
     }
@@ -235,7 +235,7 @@ public class SqliteLaunchRepository : ILaunchRepository
 
                 return await connection.ExecuteAsync(upsertSql, entities);
             }, CancellationToken.None);
-            
+
             _logger.LogInformation("Successfully saved {Count} launches to database", affectedRows);
             return affectedRows;
         }

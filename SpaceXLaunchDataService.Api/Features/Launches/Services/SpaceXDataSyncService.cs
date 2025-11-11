@@ -1,6 +1,7 @@
 using Polly;
+using SpaceXLaunchDataService.Api.Common.CQRS;
 using SpaceXLaunchDataService.Api.Common.Services.Infrastructure.Resilience;
-using SpaceXLaunchDataService.Api.Data;
+using SpaceXLaunchDataService.Api.Features.Launches.Commands;
 
 namespace SpaceXLaunchDataService.Api.Features.Launches.Services;
 
@@ -14,7 +15,7 @@ public class SpaceXDataSyncService : BackgroundService
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
-        
+
         // Initialize resilience pipeline for sync operations
         _syncResiliencePipeline = ResiliencePolicies.CreateSyncResiliencePipeline(logger);
     }
@@ -65,33 +66,23 @@ public class SpaceXDataSyncService : BackgroundService
     private async Task SynchronizeDataAsync(CancellationToken cancellationToken)
     {
         using var scope = _serviceProvider.CreateScope();
-        var spaceXService = scope.ServiceProvider.GetRequiredService<ISpaceXApiService>();
-        var repository = scope.ServiceProvider.GetRequiredService<ILaunchRepository>();
+        var scopedMediator = new ScopedMediator(scope.ServiceProvider);
 
         _logger.LogInformation("Starting SpaceX data synchronization");
 
-        var launchesResult = await spaceXService.FetchLaunchesAsync();
+        var command = new SyncLaunchesFromExternalApiCommand();
+        var result = await scopedMediator.Send(command);
 
-        await launchesResult.Match(
-            async launches =>
+        await result.Match(
+            count =>
             {
-                var saveResult = await repository.SaveLaunchesAsync(launches);
-                await saveResult.Match(
-                    count =>
-                    {
-                        _logger.LogInformation("Successfully synchronized {Count} launches", count);
-                        return Task.CompletedTask;
-                    },
-                    error =>
-                    {
-                        _logger.LogError(error.Exception, "Failed to save launches: [{Code}] {Message}", error.Code, error.Message);
-                        throw new InvalidOperationException($"Failed to save launches: {error.Message}", error.Exception);
-                    });
+                _logger.LogInformation("Successfully synchronized {Count} launches", count);
+                return Task.CompletedTask;
             },
-            async error =>
+            error =>
             {
-                _logger.LogError(error.Exception, "Failed to fetch launches from SpaceX API: [{Code}] {Message}", error.Code, error.Message);
-                throw new InvalidOperationException($"Failed to fetch launches: {error.Message}", error.Exception);
+                _logger.LogError(error.Exception, "Failed to synchronize launches: [{Code}] {Message}", error.Code, error.Message);
+                throw new InvalidOperationException($"Failed to synchronize launches: {error.Message}", error.Exception);
             });
     }
 }
