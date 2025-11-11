@@ -6,6 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Configure services
 builder.Services.ConfigureApplicationServices(builder.Configuration)
+    .ConfigureCQRS()
     .ConfigureJsonSerialization()
     .ConfigureSwagger()
     .ConfigureHealthChecks();

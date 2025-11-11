@@ -30,8 +30,8 @@ namespace SpaceXLaunchDataService.Api.Common.Extensions
 
         public static IServiceCollection ConfigureCQRS(this IServiceCollection services)
         {
-            // Register the mediator as singleton
-            services.AddSingleton<IMediator, Mediator>();
+            // Register the mediator as scoped (was singleton)
+            services.AddScoped<IMediator, Mediator>();
 
             // Register all handlers from the Features.Launches.Handlers namespace
             var handlersAssembly = typeof(GetLaunchesHandler).Assembly;
